@@ -5,7 +5,6 @@ before_script:
 script:
   - asdf plugin-add odo ./
   - asdf list-all odo
-  - asdf plugin-test odo ./ 'odo version'
 os:
   - linux
   - osx
