@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+set \
+  -o nounset \
+  -o pipefail \
+  -o errexit
+
+# required environment variables
+: ${ASDF_INSTALL_TYPE?}
+: ${ASDF_INSTALL_VERSION?}
+: ${ASDF_INSTALL_PATH?}
+
+install () {
+  local -r install_type="$1"
+  local -r version="$2"
+  local -r install_path="$3"
+
+  local -r bin_install_path="${install_path}/bin"
+  local -r download_url="$(get_download_url "${version}")"
+
+  mkdir -p "${bin_install_path}"
+
+  local bin_path="${bin_install_path}/odo"
+  echo "Downloading odo version ${version} from ${download_url}"
+
+  curl -s "${download_url}" -o "${bin_path}"
+  chmod +x ${bin_path}
+}
+
+get_platform () {
+  local os
+  local arch
+
+  os=$(uname | tr '[:upper:]' '[:lower:]')
+  arch=$(uname -m)
+
+  case "$arch" in
+    'x86_64') local platform="${os}-amd64";;
+    *) local platform="${os}-${arch}";;
+  esac
+
+  echo $platform
+}
+
+get_filename () {
+  local -r platform="$(get_platform)"
+  echo "odo-${platform}"
+}
+
+get_download_url () {
+  local -r version="$1"
+  local -r filename="$(get_filename "${version}")"
+  echo "https://mirror.openshift.com/pub/openshift-v4/clients/odo/${version}/${filename}"
+}
+
+install "${ASDF_INSTALL_TYPE}" "${ASDF_INSTALL_VERSION}" "${ASDF_INSTALL_PATH}"
